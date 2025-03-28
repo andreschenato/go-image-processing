@@ -1,6 +1,7 @@
 package view
 
 import (
+	"image"
 	"image_processing/service"
 
 	"fyne.io/fyne/v2"
@@ -10,18 +11,18 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func ImageUploadView() *fyne.Container {
-	image := canvas.NewImageFromImage(nil)
-	image.FillMode = canvas.ImageFillContain
-	image.SetMinSize(fyne.NewSize(250, 250))
+func ImageUploadView() (*fyne.Container, *image.Image) {
+	img := canvas.NewImageFromImage(nil)
+	img.FillMode = canvas.ImageFillContain
+	img.SetMinSize(fyne.NewSize(250, 250))
 
 	uploadBtn := widget.NewButton("Upload Image", func() {
-		service.UploadImage(Window, image)
+		service.UploadImage(Window, img)
 	})
 
 	fixedLayout := layout.NewGridWrapLayout(fyne.NewSize(250, 50))
 	fixedBtn := container.New(fixedLayout, uploadBtn)
 
-	imgCombo := container.NewVBox(image, fixedBtn)
-	return container.NewCenter(imgCombo)
+	imgCombo := container.NewVBox(img, fixedBtn)
+	return container.NewCenter(imgCombo), &img.Image
 }

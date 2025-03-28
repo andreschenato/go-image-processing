@@ -1,17 +1,19 @@
 package view
 
 import (
+	"image_processing/view/buttons"
+
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
 )
 
 var Window fyne.Window
 
-func MainView() fyne.Window {
-	myApp := app.NewWithID("Process image")
-	Window = myApp.NewWindow("Image Viewer")
+func MainView(a fyne.App) fyne.Window {
+	Window = a.NewWindow("Image Viewer")
 
-	content := ImageComboView()
+	components := container.NewHBox(ImageComboView(), buttons.GrayscaleButton(), ProcessedImage())
+	content := container.NewCenter(components)
 	Window.SetContent(content)
 
 	Window.Resize(fyne.NewSize(1000, 400))
