@@ -5,6 +5,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 )
 
 func ImageComboView() *fyne.Container {
@@ -18,6 +19,9 @@ func ImageComboView() *fyne.Container {
 		global.ImageTwo = imgTwo
 	}
 
-	content := container.NewGridWithColumns(2, imgOneCont, imgTwoCont)
+	content := container.New(
+		layout.NewHBoxLayout(),
+		container.NewPadded(imgOneCont),
+		container.NewPadded(imgTwoCont))
 	return content
 }
