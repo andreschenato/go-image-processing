@@ -2,6 +2,7 @@ package view
 
 import (
 	"image"
+	"image/color"
 	"image_processing/service"
 
 	"fyne.io/fyne/v2"
@@ -12,6 +13,9 @@ import (
 )
 
 func ImageUploadView() (*fyne.Container, *image.Image) {
+	placeholder := canvas.NewRectangle(color.RGBA{40,40,42,255})
+	placeholder.SetMinSize(fyne.NewSize(250,250))
+
 	img := canvas.NewImageFromImage(nil)
 	img.FillMode = canvas.ImageFillContain
 	img.SetMinSize(fyne.NewSize(250, 250))
@@ -20,9 +24,14 @@ func ImageUploadView() (*fyne.Container, *image.Image) {
 		service.UploadImage(Window, img)
 	})
 
+	imgContainer := container.NewStack(placeholder, img)
+
 	fixedLayout := layout.NewGridWrapLayout(fyne.NewSize(250, 50))
 	fixedBtn := container.New(fixedLayout, uploadBtn)
 
-	imgCombo := container.NewVBox(img, fixedBtn)
+	imgCombo := container.NewVBox(
+		container.NewPadded(imgContainer),
+		container.NewPadded(fixedBtn),
+	)
 	return container.NewCenter(imgCombo), &img.Image
 }

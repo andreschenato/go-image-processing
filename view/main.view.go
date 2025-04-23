@@ -1,9 +1,6 @@
 package view
 
 import (
-	"image_processing/view/buttons"
-	"image_processing/view/sliders"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
@@ -17,14 +14,12 @@ func MainView(a fyne.App) fyne.Window {
 	components := container.New(
 		layout.NewVBoxLayout(),
 		ImageComboView(),
-		container.NewPadded(buttons.GrayscaleButton()),
-		container.NewPadded(buttons.SumButton()),
-		container.NewPadded(sliders.BrightSlider()),
-		ProcessedImage(),
+		container.NewPadded(Sections()),
 	)
-	content := container.NewCenter(components)
+
+	content := container.NewBorder(container.NewVBox(components), nil, nil, nil)
 	Window.SetContent(content)
 
-	Window.Resize(fyne.NewSize(1000, 400))
+	Window.Resize(fyne.NewSize(content.MinSize().Width + 100, content.MinSize().Height + 100))
 	return Window
 }
