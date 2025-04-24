@@ -22,6 +22,7 @@ func ArithmeticOperations() *fyne.Container {
 		layout.NewVBoxLayout(),
 		container.NewPadded(buttons),
 		container.NewPadded(sliders.BrightSlider()),
+		container.NewPadded(sliders.MultiplySlider()),
 	)
 
 	content := container.NewBorder(container.NewVBox(components), nil, nil, nil)

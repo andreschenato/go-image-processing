@@ -13,16 +13,17 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func BrightSlider() *fyne.Container {
-	slider := widget.NewSlider(-100, 100)
-	slider.SetValue(0)
+func MultiplySlider() *fyne.Container {
+	slider := widget.NewSlider(0, 2)
+	slider.SetValue(1)
+	slider.Step = 0.01
 
 	fixedLayout := layout.NewGridWrapLayout(fyne.NewSize(500, 10))
 
-	txt := widget.NewLabel(strconv.Itoa(int(slider.Value)))
+	txt := widget.NewLabel(strconv.FormatFloat(slider.Value, 'f', -1, 32))
 
 	sliderContainer := container.NewVBox(
-		widget.NewLabel("Bright"),
+		widget.NewLabel("Multiply"),
 		container.New(fixedLayout, slider),
 		txt,
 	)
@@ -41,9 +42,9 @@ func BrightSlider() *fyne.Container {
 	)
 
 	slider.OnChanged = func(value float64) {
-		txt.SetText(strconv.Itoa(int(value)))
+		txt.SetText(strconv.FormatFloat(slider.Value, 'f', -1, 32))
 		if *global.ImageOne != nil || *global.ImageTwo != nil {
-			global.FinalImage.Image = service.BrightImage(value)
+			global.FinalImage.Image = *service.MultiplyImage(value)
 			global.FinalImage.Refresh()
 		}
 	}
