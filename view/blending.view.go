@@ -1,6 +1,7 @@
 package view
 
 import (
+	"image_processing/view/buttons"
 	"image_processing/view/sliders"
 
 	"fyne.io/fyne/v2"
@@ -12,13 +13,14 @@ func BlendingOperations() *fyne.Container{
 	buttons := container.NewCenter(
 		container.New(
 			layout.NewHBoxLayout(),
-			sliders.BlendingRatioSlider(),
+			buttons.AverageButton(),
 		),
 	)
 
 	components := container.New(
 		layout.NewVBoxLayout(),
 		container.NewPadded(buttons),
+		container.NewPadded(sliders.BlendingRatioSlider()),
 	)
 
 	content := container.NewBorder(container.NewVBox(components), nil, nil, nil)
