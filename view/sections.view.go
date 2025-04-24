@@ -11,7 +11,7 @@ import (
 )
 
 func Sections() *fyne.Container {
-	opts := [2]string{"Arithmetics", "Grayscale"}
+	opts := [3]string{"Arithmetics", "Grayscale", "Reverse"}
 	var components fyne.Container
 	selection := widget.NewSelect(opts[:], func(s string) {
 		fmt.Println(s)
@@ -20,6 +20,8 @@ func Sections() *fyne.Container {
 			components = *ArithmeticOperations()
 		case "Grayscale":
 			components = *buttons.GrayscaleButton()
+		case "Reverse":
+			components = *ReverseOperations()
 		}
 	})
 
