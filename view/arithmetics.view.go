@@ -15,6 +15,7 @@ func ArithmeticOperations() *fyne.Container {
 			layout.NewHBoxLayout(),
 			buttons.SumButton(),
 			buttons.SubtractButton(),
+			buttons.DiffButton(),
 		),
 	)
 
