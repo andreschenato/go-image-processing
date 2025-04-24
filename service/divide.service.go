@@ -66,7 +66,7 @@ func DivideImage(value float64) *image.Image {
 	}
 	wg.Wait()
 
-	grayscaledImage := utils.ConvertPixelsToImage(newImage)
+	dividedImage := utils.ConvertPixelsToImage(newImage)
 
-	return &grayscaledImage
+	return &dividedImage
 }
