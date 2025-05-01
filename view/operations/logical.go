@@ -11,7 +11,10 @@ import (
 func Logics() *fyne.Container {
 	buttons := container.NewCenter(
 		container.NewHBox(
-			generics.Button("Not", service.Not()),
+			generics.Button("NOT", service.Not()),
+			generics.Button("AND", service.And()),
+			generics.Button("OR", service.Or()),
+			generics.Button("XOR", service.Xor()),
 		),
 	)
 

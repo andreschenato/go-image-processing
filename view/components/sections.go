@@ -12,7 +12,7 @@ import (
 )
 
 func Sections() *fyne.Container {
-	opts := [5]string{"Arithmetics", "Grayscale", "Axis", "Blending", "Logic"}
+	opts := []string{"Arithmetics", "Grayscale", "Axis", "Blending", "Logic"}
 	var components fyne.Container
 	selection := widget.NewSelect(opts[:], func(s string) {
 		switch s {
