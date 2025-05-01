@@ -1,33 +1,42 @@
 package view
 
 import (
-	"image_processing/view/buttons"
-	"image_processing/view/sliders"
+	"image_processing/service"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
 )
 
 func ArithmeticOperations() *fyne.Container {
 	buttons := container.NewCenter(
-		container.New(
-			layout.NewHBoxLayout(),
-			buttons.SumButton(),
-			buttons.SubtractButton(),
-			buttons.DiffButton(),
+		container.NewHBox(
+			Button("Sum", service.Sum()),
+			Button("Subtract", service.Subtract()),
+			Button("Diff", service.Diff()),
 		),
 	)
 
-	components := container.New(
-		layout.NewVBoxLayout(),
-		container.NewPadded(buttons),
-		container.NewPadded(sliders.BrightSlider()),
-		container.NewPadded(sliders.MultiplySlider()),
-		container.NewPadded(sliders.DivideSlider()),
+	sliders := container.NewCenter(
+		container.NewVBox(
+			Slider(-100, 100, 0, 1, "Bright", service.Bright),
+			Slider(0, 2, 1, 0.01, "Multiply", service.Multiply),
+			Slider(0, 8, 1, 0.01, "Divide", service.Divide),
+		),
 	)
 
-	content := container.NewBorder(container.NewVBox(components), nil, nil, nil)
+	components := container.NewCenter(
+		container.NewVBox(
+			buttons,
+			sliders,
+		),
+	)
+
+	content := container.NewBorder(
+		components,
+		nil,
+		nil,
+		nil,
+	)
 
 	return content
 }

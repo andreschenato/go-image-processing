@@ -1,9 +1,8 @@
-package sliders
+package view
 
 import (
 	"image/color"
-	"image_processing/global"
-	"image_processing/service"
+	"image_processing/utils"
 	"strconv"
 
 	"fyne.io/fyne/v2"
@@ -13,26 +12,26 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func MultiplySlider() *fyne.Container {
-	slider := widget.NewSlider(0, 2)
-	slider.SetValue(1)
-	slider.Step = 0.01
+func Slider[T any](min, max, initial, step float64, label string, service func(value float64) T) *fyne.Container {
+	slider := widget.NewSlider(min, max)
+	slider.SetValue(initial)
+	slider.Step = step
 
 	fixedLayout := layout.NewGridWrapLayout(fyne.NewSize(500, 10))
 
 	txt := widget.NewLabel(strconv.FormatFloat(slider.Value, 'f', -1, 32))
 
 	sliderContainer := container.NewVBox(
-		widget.NewLabel("Multiply"),
+		widget.NewLabel(label),
 		container.New(fixedLayout, slider),
 		txt,
 	)
 
-	box := canvas.NewRectangle(color.RGBA{40,40,42,255})
+	box := canvas.NewRectangle(color.RGBA{40, 40, 42, 255})
 	box.SetMinSize(
 		fyne.NewSize(
-			slider.MinSize().Width + 10,
-			slider.MinSize().Height + 10,
+			slider.MinSize().Width+10,
+			slider.MinSize().Height+10,
 		),
 	)
 
@@ -43,11 +42,12 @@ func MultiplySlider() *fyne.Container {
 
 	slider.OnChanged = func(value float64) {
 		txt.SetText(strconv.FormatFloat(slider.Value, 'f', -1, 32))
-		if *global.ImageOne != nil || *global.ImageTwo != nil {
-			global.FinalImage.Image = *service.MultiplyImage(value)
-			global.FinalImage.Refresh()
-		}
+		utils.Process(service(value))()
 	}
 
-	return container.NewCenter(container.NewHBox(sliderBox))
+	return container.NewPadded(
+		container.NewCenter(
+			container.NewHBox(sliderBox),
+		),
+	)
 }
