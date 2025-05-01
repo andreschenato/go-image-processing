@@ -1,9 +1,9 @@
-package view
+package components
 
 import (
 	"image"
 	"image/color"
-	"image_processing/service"
+	"image_processing/utils"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -21,7 +21,7 @@ func ImageUploadView() (*fyne.Container, *image.Image) {
 	img.SetMinSize(fyne.NewSize(250, 250))
 
 	uploadBtn := widget.NewButton("Upload Image", func() {
-		service.UploadImage(Window, img)
+		utils.UploadImage(img)
 	})
 
 	imgContainer := container.NewStack(placeholder, img)

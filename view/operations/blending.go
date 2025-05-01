@@ -1,22 +1,23 @@
-package view
+package operations
 
 import (
 	"image_processing/service"
+	"image_processing/view/generics"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 )
 
-func BlendingOperations() *fyne.Container {
+func Blending() *fyne.Container {
 	buttons := container.NewCenter(
 		container.NewHBox(
-			Button("Average", service.Average()),
+			generics.Button("Average", service.Average()),
 		),
 	)
 
 	sliders := container.NewCenter(
 		container.NewVBox(
-			Slider(0, 1, 1, 0.01, "Blending", service.Blend),
+			generics.Slider(0, 1, 1, 0.01, "Blending", service.Blend),
 		),
 	)
 

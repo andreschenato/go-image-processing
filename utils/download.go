@@ -1,4 +1,4 @@
-package service
+package utils
 
 import (
 	"image/gif"
@@ -9,13 +9,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"fyne.io/fyne/v2"
 	"github.com/sqweek/dialog"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/tiff"
 )
 
-func DownloadImage(w fyne.Window) {
+func DownloadImage() {
 	if global.FinalImage.Image == nil {
 		return
 	}

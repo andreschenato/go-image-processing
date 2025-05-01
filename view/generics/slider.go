@@ -1,4 +1,4 @@
-package view
+package generics
 
 import (
 	"image/color"

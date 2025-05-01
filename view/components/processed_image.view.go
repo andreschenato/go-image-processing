@@ -1,9 +1,9 @@
-package view
+package components
 
 import (
 	"image/color"
 	"image_processing/global"
-	"image_processing/service"
+	"image_processing/utils"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -21,7 +21,7 @@ func ProcessedImage() (*fyne.Container) {
 	global.FinalImage.SetMinSize(fyne.NewSize(250, 250))
 
 	downloadBtn := widget.NewButton("Download Image", func () {
-		service.DownloadImage(Window)
+		utils.DownloadImage()
 	})
 
 	imgContainer := container.NewStack(placeholder, global.FinalImage)

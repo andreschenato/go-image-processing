@@ -1,17 +1,17 @@
-package view
+package operations
 
 import (
 	"image_processing/service"
+	"image_processing/view/generics"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 )
 
-func AxisOperations() *fyne.Container{
+func Logics() *fyne.Container {
 	buttons := container.NewCenter(
 		container.NewHBox(
-			Button("Vertical", service.Vertical()),
-			Button("Horizontal", service.Horizontal()),
+			generics.Button("Not", service.Not()),
 		),
 	)
 
@@ -23,8 +23,8 @@ func AxisOperations() *fyne.Container{
 
 	content := container.NewBorder(
 		components,
-		nil, 
-		nil, 
+		nil,
+		nil,
 		nil,
 	)
 
