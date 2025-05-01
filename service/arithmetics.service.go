@@ -11,7 +11,7 @@ func Sum() utils.PixelsTransformFunc {
 			R: uint8(min(float64(pixelOne.R)+float64(pixelTwo.R), 255)),
 			G: uint8(min(float64(pixelOne.G)+float64(pixelTwo.G), 255)),
 			B: uint8(min(float64(pixelOne.B)+float64(pixelTwo.B), 255)),
-			A: uint8(min(float64(pixelOne.A)+float64(pixelTwo.A), 255)),
+			A: 255,
 		}
 	}
 }
@@ -22,7 +22,7 @@ func Subtract() utils.PixelsTransformFunc {
 			R: uint8(max(float64(pixelOne.R)-float64(pixelTwo.R), 0)),
 			G: uint8(max(float64(pixelOne.G)-float64(pixelTwo.G), 0)),
 			B: uint8(max(float64(pixelOne.B)-float64(pixelTwo.B), 0)),
-			A: pixelOne.A,
+			A: 255,
 		}
 	}
 }

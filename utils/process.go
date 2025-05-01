@@ -10,6 +10,7 @@ import (
 
 type PixelTransformFunc func(color.RGBA) color.RGBA
 type PixelsTransformFunc func(color.RGBA, color.RGBA) color.RGBA
+type AxisTransformFunc func(x, y, width, height int, pixel color.RGBA) (int, int, color.RGBA)
 
 func single(fun PixelTransformFunc) {
 	img := *global.ImageOne
@@ -119,6 +120,62 @@ func both(fun PixelsTransformFunc) {
 	global.FinalImage.Refresh()
 }
 
+func axis(fun AxisTransformFunc) {
+	img := *global.ImageOne
+	if img == nil {
+		img = *global.ImageTwo
+	}
+
+	pixels := ConvertImageToPixels(img)
+
+	xLen := len(pixels)
+	yLen := len(pixels[0])
+
+	newImage := make([][]color.Color, xLen)
+	for i := range newImage {
+		newImage[i] = make([]color.Color, yLen)
+	}
+
+	numWorkers := runtime.NumCPU()
+	var wg = sync.WaitGroup{}
+
+	chunkSize := max(xLen/numWorkers, 1)
+
+	for i := range numWorkers {
+		wg.Add(1)
+
+		startX := i * chunkSize
+		endX := startX + chunkSize
+		if i == numWorkers-1 {
+			endX = xLen
+		}
+
+		go func(startX, endX int) {
+			defer wg.Done()
+
+			for x := range xLen {
+				for y := range yLen {
+					pixel := pixels[x][y]
+					originalColor, ok := color.RGBAModel.Convert(pixel).(color.RGBA)
+					if !ok {
+						slog.Error("type conversion went wrong")
+					}
+
+					newX, newY, newColor := fun(x, y, xLen, yLen, originalColor)
+
+					if newX >= 0 && newX < xLen && newY >= 0 && newY < yLen {
+						newImage[newX][newY] = newColor
+					}
+				}
+			}
+		}(startX, endX)
+	}
+	wg.Wait()
+
+	global.FinalImage.Image = ConvertPixelsToImage(newImage)
+	global.FinalImage.Refresh()
+}
+
 func Process(service interface{}) func() {
 	return func() {
 		switch s := service.(type) {
@@ -135,6 +192,13 @@ func Process(service interface{}) func() {
 				return
 			}
 			slog.Error("Images aren't set")
+			return
+		case AxisTransformFunc:
+			if *global.ImageOne != nil || *global.ImageTwo != nil {
+				axis(s)
+				return
+			}
+			slog.Error("No image set")
 			return
 		default:
 			slog.Error("invalid service", "type", s)
