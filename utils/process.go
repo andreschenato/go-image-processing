@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"runtime"
 	"sync"
+	"time"
 )
 
 type PixelTransformFunc func(color.RGBA) color.RGBA
@@ -13,6 +14,7 @@ type PixelsTransformFunc func(color.RGBA, color.RGBA) color.RGBA
 type AxisTransformFunc func(x, y, width, height int, pixel color.RGBA) (int, int, color.RGBA)
 
 func single(fun PixelTransformFunc) {
+	start := time.Now()
 	img := *global.ImageOne
 	if img == nil {
 		img = *global.ImageTwo
@@ -64,6 +66,8 @@ func single(fun PixelTransformFunc) {
 
 	global.FinalImage.Image = ConvertPixelsToImage(newImage)
 	global.FinalImage.Refresh()
+
+	global.ExecutionTime.SetText(time.Since(start).String())
 }
 
 func both(fun PixelsTransformFunc) {
@@ -176,11 +180,143 @@ func axis(fun AxisTransformFunc) {
 	global.FinalImage.Refresh()
 }
 
+func threadOne(fun PixelTransformFunc) {
+	start := time.Now()
+	img := *global.ImageOne
+	if img == nil {
+		img = *global.ImageTwo
+	}
+
+	pixels := ConvertImageToPixels(img)
+
+	xLen := len(pixels)
+	yLen := len(pixels[0])
+
+	newImage := make([][]color.Color, xLen)
+	for i := range newImage {
+		newImage[i] = make([]color.Color, yLen)
+	}
+
+	wg := sync.WaitGroup{}
+	for x := range xLen {
+		for y := range yLen {
+			wg.Add(1)
+			go func(x, y int) {
+				pixel := pixels[x][y]
+				originalColor, ok := color.RGBAModel.Convert(pixel).(color.RGBA)
+				if !ok {
+					slog.Error("type conversion went wrong")
+				}
+				newColor := fun(originalColor)
+
+				newImage[x][y] = newColor
+				wg.Done()
+			}(x, y)
+		}
+	}
+	wg.Wait()
+
+	global.FinalImage.Image = ConvertPixelsToImage(newImage)
+	global.FinalImage.Refresh()
+	global.ExecutionTime.SetText(time.Since(start).String())
+}
+
+func threadTwo(fun PixelsTransformFunc) {
+	start := time.Now()
+
+	pixelsOne := ConvertImageToPixels(*global.ImageOne)
+	pixelsTwo := ConvertImageToPixels(*global.ImageTwo)
+
+	xLen := len(pixelsOne)
+	yLen := len(pixelsOne[0])
+
+	newImage := make([][]color.Color, xLen)
+	for i := range newImage {
+		newImage[i] = make([]color.Color, yLen)
+	}
+
+	wg := sync.WaitGroup{}
+	for x := range xLen {
+		for y := range yLen {
+			wg.Add(1)
+			go func(x, y int) {
+				ogColorOne, ok := color.RGBAModel.Convert(pixelsOne[x][y]).(color.RGBA)
+				if !ok {
+					slog.Error("conversion went wrong")
+				}
+
+				ogColorTwo, ok := color.RGBAModel.Convert(pixelsTwo[x][y]).(color.RGBA)
+				if !ok {
+					slog.Error("conversion went wrong")
+				}
+
+				newColor := fun(ogColorOne, ogColorTwo)
+
+				newImage[x][y] = newColor
+				wg.Done()
+			}(x, y)
+		}
+	}
+	wg.Wait()
+
+	global.FinalImage.Image = ConvertPixelsToImage(newImage)
+	global.FinalImage.Refresh()
+	global.ExecutionTime.SetText(time.Since(start).String())
+}
+
+func threadAxis(fun AxisTransformFunc) {
+	start := time.Now()
+	img := *global.ImageOne
+	if img == nil {
+		img = *global.ImageTwo
+	}
+
+	pixels := ConvertImageToPixels(img)
+
+	xLen := len(pixels)
+	yLen := len(pixels[0])
+
+	newImage := make([][]color.Color, xLen)
+	for i := range newImage {
+		newImage[i] = make([]color.Color, yLen)
+	}
+
+	wg := sync.WaitGroup{}
+	for x := range xLen {
+		for y := range yLen {
+			wg.Add(1)
+			go func(x, y int) {
+				pixel := pixels[x][y]
+				originalColor, ok := color.RGBAModel.Convert(pixel).(color.RGBA)
+				if !ok {
+					slog.Error("type conversion went wrong")
+				}
+
+				newX, newY, newColor := fun(x, y, xLen, yLen, originalColor)
+
+				if newX >= 0 && newX < xLen && newY >= 0 && newY < yLen {
+					newImage[newX][newY] = newColor
+				}
+				wg.Done()
+			}(x, y)
+		}
+	}
+	wg.Wait()
+
+	global.FinalImage.Image = ConvertPixelsToImage(newImage)
+	global.FinalImage.Refresh()
+	global.ExecutionTime.SetText(time.Since(start).String())
+}
+
 func Process(service interface{}) func() {
 	return func() {
 		switch s := service.(type) {
 		case PixelTransformFunc:
 			if *global.ImageOne != nil || *global.ImageTwo != nil {
+				if global.UseSingleThread {
+					threadOne(s)
+					return
+				}
 				single(s)
 				return
 			}
@@ -188,6 +324,10 @@ func Process(service interface{}) func() {
 			return
 		case PixelsTransformFunc:
 			if *global.ImageOne != nil && *global.ImageTwo != nil {
+				if global.UseSingleThread {
+					threadTwo(s)
+					return
+				}
 				both(s)
 				return
 			}
@@ -195,6 +335,10 @@ func Process(service interface{}) func() {
 			return
 		case AxisTransformFunc:
 			if *global.ImageOne != nil || *global.ImageTwo != nil {
+				if global.UseSingleThread {
+					threadAxis(s)
+					return
+				}
 				axis(s)
 				return
 			}

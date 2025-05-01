@@ -1,9 +1,12 @@
 package view
 
 import (
+	"image/color"
+	"image_processing/global"
 	"image_processing/view/components"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 )
 
@@ -14,6 +17,12 @@ func MainView(a fyne.App) fyne.Window {
 
 	components := container.NewVBox(
 		components.ImageComboView(),
+		container.NewCenter(
+			container.NewHBox(
+				canvas.NewText("Execution time:", color.White),
+				&global.ExecutionTime,
+			),
+		),
 		components.Sections(),
 	)
 

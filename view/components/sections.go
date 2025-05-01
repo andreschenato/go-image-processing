@@ -41,6 +41,7 @@ func Sections() *fyne.Container {
 
 	contents := container.NewCenter(
 		container.NewVBox(
+			generics.Checkbox("Process singlethread?"),
 			container.NewCenter(selectionLayout),
 			container.NewVBox(&components),
 		),
