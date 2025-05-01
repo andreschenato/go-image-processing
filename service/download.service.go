@@ -1,14 +1,18 @@
 package service
 
 import (
+	"image/gif"
+	"image/jpeg"
 	"image/png"
 	"image_processing/global"
-	"image_processing/view/popups"
 	"log/slog"
 	"os"
+	"path/filepath"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/dialog"
+	"github.com/sqweek/dialog"
+	"golang.org/x/image/bmp"
+	"golang.org/x/image/tiff"
 )
 
 func DownloadImage(w fyne.Window) {
@@ -16,30 +20,44 @@ func DownloadImage(w fyne.Window) {
 		return
 	}
 
-	dialog.ShowFileSave(func(f fyne.URIWriteCloser, err error) {
-		if err != nil {
-			slog.Error("Fatal error saving file")
+	file, err := dialog.File().Filter("Image file", "jpeg", "jpg", "png", "gif", "tif", "bmp").
+		Title("Export image to file").Save()
+	if err != nil {
+		slog.Error("Error trying to save file")
+		return
+	}
+
+	f, err := os.Create(file)
+	if err != nil {
+		slog.Error("Error trying to create file", "error", err)
+	}
+	defer f.Close()
+
+	switch filepath.Ext(file) {
+	case ".jpeg", ".jpg":
+		if err := jpeg.Encode(f, global.FinalImage.Image, nil); err != nil {
+			slog.Error("Failed to encode image", "error", err)
 			return
 		}
-		if f == nil {
-			return
-		}
-
-		path := f.URI().Path()
-
+	case ".png":
 		if err := png.Encode(f, global.FinalImage.Image); err != nil {
 			slog.Error("Failed to encode image", "error", err)
 			return
 		}
-		if err := f.Close(); err != nil {
-			slog.Error("Failed to close file", "error", err)
+	case ".gif":
+		if err := gif.Encode(f, global.FinalImage.Image, nil); err != nil {
+			slog.Error("Failed to encode image", "error", err)
 			return
 		}
-		if f.URI().Extension() != ".png" {
-			newPath := path + ".png"
-			os.Rename(path, newPath)
+	case ".tif":
+		if err := tiff.Encode(f, global.FinalImage.Image, nil); err != nil {
+			slog.Error("Failed to encode image", "error", err)
+			return
 		}
-
-		popups.SavedPopup(w)
-	}, w)
+	case ".bmp":
+		if err := bmp.Encode(f, global.FinalImage.Image); err != nil {
+			slog.Error("Failed to encode image", "error", err)
+			return
+		}
+	}
 }

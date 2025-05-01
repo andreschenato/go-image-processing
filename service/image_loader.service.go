@@ -25,7 +25,7 @@ func LoadImage(path string) (image.Image, error) {
 		return nil, err
 	}
 
-	if format != "jpeg" && format != "png" && format != "gif" && format != "tiff" {
+	if format != "jpeg" && format != "png" && format != "gif" && format != "tiff" && format != "bmp" {
 		slog.Error("image format is not valid")
 		return nil, errors.New("image format is not valid")
 	}
