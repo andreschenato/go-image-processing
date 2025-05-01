@@ -2,7 +2,7 @@ package view
 
 import (
 	"fmt"
-	"image_processing/view/buttons"
+	"image_processing/service"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -19,7 +19,7 @@ func Sections() *fyne.Container {
 		case "Arithmetics":
 			components = *ArithmeticOperations()
 		case "Grayscale":
-			components = *buttons.GrayscaleButton()
+			components = *Button("Grayscale", service.Grayscale())
 		case "Axis":
 			components = *AxisOperations()
 		case "Blending":

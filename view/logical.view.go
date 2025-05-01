@@ -1,27 +1,31 @@
 package view
 
 import (
-	"image_processing/view/buttons"
+	"image_processing/service"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
 )
 
 func LogicOperations() *fyne.Container {
 	buttons := container.NewCenter(
-		container.New(
-			layout.NewHBoxLayout(),
-			buttons.NotButton(),
+		container.NewHBox(
+			Button("Not", service.Not()),
 		),
 	)
 
-	components := container.New(
-		layout.NewVBoxLayout(),
-		container.NewPadded(buttons),
+	components := container.NewCenter(
+		container.NewVBox(
+			buttons,
+		),
 	)
 
-	content := container.NewBorder(container.NewVBox(components), nil, nil, nil)
+	content := container.NewBorder(
+		components,
+		nil,
+		nil,
+		nil,
+	)
 
 	return content
 }

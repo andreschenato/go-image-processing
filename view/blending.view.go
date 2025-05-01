@@ -1,29 +1,38 @@
 package view
 
 import (
-	"image_processing/view/buttons"
-	"image_processing/view/sliders"
+	"image_processing/service"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
 )
 
-func BlendingOperations() *fyne.Container{
+func BlendingOperations() *fyne.Container {
 	buttons := container.NewCenter(
-		container.New(
-			layout.NewHBoxLayout(),
-			buttons.AverageButton(),
+		container.NewHBox(
+			Button("Average", service.Average()),
 		),
 	)
 
-	components := container.New(
-		layout.NewVBoxLayout(),
-		container.NewPadded(buttons),
-		container.NewPadded(sliders.BlendingRatioSlider()),
+	sliders := container.NewCenter(
+		container.NewVBox(
+			Slider(0, 1, 1, 0.01, "Blending", service.Blend),
+		),
 	)
 
-	content := container.NewBorder(container.NewVBox(components), nil, nil, nil)
+	components := container.NewCenter(
+		container.NewVBox(
+			buttons,
+			sliders,
+		),
+	)
+
+	content := container.NewBorder(
+		components,
+		nil,
+		nil,
+		nil,
+	)
 
 	return content
 }
