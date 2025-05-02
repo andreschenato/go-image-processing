@@ -4,8 +4,6 @@ import (
 	"image/color"
 	"image_processing/global"
 	"log/slog"
-	"runtime"
-	"sync"
 )
 
 type PixelTransformFunc func(color.RGBA) color.RGBA
@@ -23,44 +21,20 @@ func single(fun PixelTransformFunc) {
 	xLen := len(pixels)
 	yLen := len(pixels[0])
 
-	newImage := make([][]color.Color, xLen)
+	newImage := make([][]color.RGBA, xLen)
 	for i := range newImage {
-		newImage[i] = make([]color.Color, yLen)
+		newImage[i] = make([]color.RGBA, yLen)
 	}
 
-	numWorkers := runtime.NumCPU()
-	var wg = sync.WaitGroup{}
+	for x := range xLen {
+		for y := range yLen {
+			pixel := pixels[x][y]
 
-	chunkSize := max(xLen/numWorkers, 1)
+			newColor := fun(pixel)
 
-	for i := range numWorkers {
-		wg.Add(1)
-
-		startX := i * chunkSize
-		endX := startX + chunkSize
-		if i == numWorkers-1 {
-			endX = xLen
+			newImage[x][y] = newColor
 		}
-
-		go func(startX, endX int) {
-			defer wg.Done()
-
-			for x := range xLen {
-				for y := range yLen {
-					pixel := pixels[x][y]
-					originalColor, ok := color.RGBAModel.Convert(pixel).(color.RGBA)
-					if !ok {
-						slog.Error("type conversion went wrong")
-					}
-
-					newColor := fun(originalColor)
-
-					newImage[x][y] = newColor
-				}
-			}
-		}(startX, endX)
 	}
-	wg.Wait()
 
 	global.FinalImage.Image = ConvertPixelsToImage(newImage)
 	global.FinalImage.Refresh()
@@ -73,48 +47,18 @@ func both(fun PixelsTransformFunc) {
 	xLen := len(pixelsOne)
 	yLen := len(pixelsOne[0])
 
-	newImage := make([][]color.Color, xLen)
+	newImage := make([][]color.RGBA, xLen)
 	for i := range xLen {
-		newImage[i] = make([]color.Color, yLen)
+		newImage[i] = make([]color.RGBA, yLen)
 	}
 
-	numWorkers := runtime.NumCPU()
-	var wg = sync.WaitGroup{}
+	for x := range xLen {
+		for y := range yLen {
+			newColor := fun(pixelsOne[x][y], pixelsTwo[x][y])
 
-	chunkSize := max(xLen/numWorkers, 1)
-
-	for i := range numWorkers {
-		wg.Add(1)
-
-		startX := i * chunkSize
-		endX := startX + chunkSize
-		if i == numWorkers-1 {
-			endX = xLen
+			newImage[x][y] = newColor
 		}
-
-		go func(startX, endX int) {
-			defer wg.Done()
-
-			for x := range xLen {
-				for y := range yLen {
-					ogColorOne, ok := color.RGBAModel.Convert(pixelsOne[x][y]).(color.RGBA)
-					if !ok {
-						slog.Error("conversion went wrong")
-					}
-
-					ogColorTwo, ok := color.RGBAModel.Convert(pixelsTwo[x][y]).(color.RGBA)
-					if !ok {
-						slog.Error("conversion went wrong")
-					}
-
-					newColor := fun(ogColorOne, ogColorTwo)
-
-					newImage[x][y] = newColor
-				}
-			}
-		}(startX, endX)
 	}
-	wg.Wait()
 
 	global.FinalImage.Image = ConvertPixelsToImage(newImage)
 	global.FinalImage.Refresh()
@@ -131,46 +75,22 @@ func axis(fun AxisTransformFunc) {
 	xLen := len(pixels)
 	yLen := len(pixels[0])
 
-	newImage := make([][]color.Color, xLen)
+	newImage := make([][]color.RGBA, xLen)
 	for i := range newImage {
-		newImage[i] = make([]color.Color, yLen)
+		newImage[i] = make([]color.RGBA, yLen)
 	}
 
-	numWorkers := runtime.NumCPU()
-	var wg = sync.WaitGroup{}
+	for x := range xLen {
+		for y := range yLen {
+			pixel := pixels[x][y]
 
-	chunkSize := max(xLen/numWorkers, 1)
+			newX, newY, newColor := fun(x, y, xLen, yLen, pixel)
 
-	for i := range numWorkers {
-		wg.Add(1)
-
-		startX := i * chunkSize
-		endX := startX + chunkSize
-		if i == numWorkers-1 {
-			endX = xLen
-		}
-
-		go func(startX, endX int) {
-			defer wg.Done()
-
-			for x := range xLen {
-				for y := range yLen {
-					pixel := pixels[x][y]
-					originalColor, ok := color.RGBAModel.Convert(pixel).(color.RGBA)
-					if !ok {
-						slog.Error("type conversion went wrong")
-					}
-
-					newX, newY, newColor := fun(x, y, xLen, yLen, originalColor)
-
-					if newX >= 0 && newX < xLen && newY >= 0 && newY < yLen {
-						newImage[newX][newY] = newColor
-					}
-				}
+			if newX >= 0 && newX < xLen && newY >= 0 && newY < yLen {
+				newImage[newX][newY] = newColor
 			}
-		}(startX, endX)
+		}
 	}
-	wg.Wait()
 
 	global.FinalImage.Image = ConvertPixelsToImage(newImage)
 	global.FinalImage.Refresh()

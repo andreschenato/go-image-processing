@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"image"
 	_ "image/png"
 	_ "image/gif"
@@ -13,11 +12,9 @@ import (
 func LoadImage(path string) (image.Image, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		fmt.Println(err)
+		slog.Error("error opening file", "error", err)
 		return nil, err
 	}
-	fi, _ := f.Stat()
-	fmt.Println(fi.Name())
 
 	img, format, err := image.Decode(f)
 	if err != nil {
