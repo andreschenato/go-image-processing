@@ -147,15 +147,18 @@ func Process(service interface{}) func() {
 			}
 			newImage = singleMultithread(s, xLen, yLen, pixelsOne, newImage)
 		case PixelsTransformFunc:
-			if pixelsTwo != nil {
-				if global.UseSingleThread {
-					newImage = both(s, xLen, yLen, pixelsOne, *pixelsTwo, newImage)
-				}
-				newImage = bothMultithread(s, xLen, yLen, pixelsOne, *pixelsTwo, newImage)
+			if pixelsTwo == nil {
+				return
 			}
+			if global.UseSingleThread {
+				newImage = both(s, xLen, yLen, pixelsOne, *pixelsTwo, newImage)
+				break
+			}
+			newImage = bothMultithread(s, xLen, yLen, pixelsOne, *pixelsTwo, newImage)
 		case AxisTransformFunc:
 			if global.UseSingleThread {
 				newImage = axis(s, xLen, yLen, pixelsOne, newImage)
+				break
 			}
 			newImage = axisMultithread(s, xLen, yLen, pixelsOne, newImage)
 		default:
