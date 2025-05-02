@@ -13,340 +13,190 @@ type PixelTransformFunc func(color.RGBA) color.RGBA
 type PixelsTransformFunc func(color.RGBA, color.RGBA) color.RGBA
 type AxisTransformFunc func(x, y, width, height int, pixel color.RGBA) (int, int, color.RGBA)
 
-func single(fun PixelTransformFunc) {
+func single(fun PixelTransformFunc, width, height int, pixel, image [][]color.RGBA) [][]color.RGBA {
 	start := time.Now()
-	img := *global.ImageOne
-	if img == nil {
-		img = *global.ImageTwo
-	}
-
-	pixels := ConvertImageToPixels(img)
-
-	xLen := len(pixels)
-	yLen := len(pixels[0])
-
-	newImage := make([][]color.Color, xLen)
-	for i := range newImage {
-		newImage[i] = make([]color.Color, yLen)
-	}
-
-	numWorkers := runtime.NumCPU()
-	var wg = sync.WaitGroup{}
-
-	chunkSize := max(xLen/numWorkers, 1)
-
-	for i := range numWorkers {
-		wg.Add(1)
-
-		startX := i * chunkSize
-		endX := startX + chunkSize
-		if i == numWorkers-1 {
-			endX = xLen
+	for x := range width {
+		for y := range height {
+			image[x][y] = fun(pixel[x][y])
 		}
-
-		go func(startX, endX int) {
-			defer wg.Done()
-
-			for x := range xLen {
-				for y := range yLen {
-					pixel := pixels[x][y]
-					originalColor, ok := color.RGBAModel.Convert(pixel).(color.RGBA)
-					if !ok {
-						slog.Error("type conversion went wrong")
-					}
-
-					newColor := fun(originalColor)
-
-					newImage[x][y] = newColor
-				}
-			}
-		}(startX, endX)
 	}
-	wg.Wait()
-
-	global.FinalImage.Image = ConvertPixelsToImage(newImage)
-	global.FinalImage.Refresh()
-
 	global.ExecutionTime.SetText(time.Since(start).String())
+	return image
 }
 
-func both(fun PixelsTransformFunc) {
-	pixelsOne := ConvertImageToPixels(*global.ImageOne)
-	pixelsTwo := ConvertImageToPixels(*global.ImageTwo)
-
-	xLen := len(pixelsOne)
-	yLen := len(pixelsOne[0])
-
-	newImage := make([][]color.Color, xLen)
-	for i := range xLen {
-		newImage[i] = make([]color.Color, yLen)
+func both(fun PixelsTransformFunc, width, height int, pixelOne, pixelTwo, image [][]color.RGBA) [][]color.RGBA {
+	start := time.Now()
+	for x := range width {
+		for y := range height {
+			image[x][y] = fun(pixelOne[x][y], pixelTwo[x][y])
+		}
 	}
+	global.ExecutionTime.SetText(time.Since(start).String())
+	return image
+}
 
-	numWorkers := runtime.NumCPU()
-	var wg = sync.WaitGroup{}
+func axis(fun AxisTransformFunc, width, height int, pixels, image [][]color.RGBA) [][]color.RGBA {
+	start := time.Now()
+	for x := range width {
+		for y := range height {
+			newX, newY, newColor := fun(x, y, width, height, pixels[x][y])
 
-	chunkSize := max(xLen/numWorkers, 1)
+			if newX >= 0 && newX < width && newY >= 0 && newY < height {
+				image[newX][newY] = newColor
+			}
+		}
+	}
+	global.ExecutionTime.SetText(time.Since(start).String())
+	return image
+}
 
-	for i := range numWorkers {
-		wg.Add(1)
+func singleMultithread(fun PixelTransformFunc, width, height int, pixel, image [][]color.RGBA) [][]color.RGBA {
+	start := time.Now()
+	numCPU := runtime.NumCPU()
+	var wg sync.WaitGroup
+	wg.Add(numCPU)
 
+	chunkSize := max(width/numCPU, 1)
+
+	for i := range numCPU {
 		startX := i * chunkSize
-		endX := startX + chunkSize
-		if i == numWorkers-1 {
-			endX = xLen
+		endX := (i + 1) * chunkSize
+		if i == numCPU-1 {
+			endX = width
 		}
 
 		go func(startX, endX int) {
 			defer wg.Done()
-
-			for x := range xLen {
-				for y := range yLen {
-					ogColorOne, ok := color.RGBAModel.Convert(pixelsOne[x][y]).(color.RGBA)
-					if !ok {
-						slog.Error("conversion went wrong")
-					}
-
-					ogColorTwo, ok := color.RGBAModel.Convert(pixelsTwo[x][y]).(color.RGBA)
-					if !ok {
-						slog.Error("conversion went wrong")
-					}
-
-					newColor := fun(ogColorOne, ogColorTwo)
-
-					newImage[x][y] = newColor
+			for x := startX; x < endX; x++ {
+				for y := range height {
+					image[x][y] = fun(pixel[x][y])
 				}
 			}
 		}(startX, endX)
 	}
-	wg.Wait()
 
-	global.FinalImage.Image = ConvertPixelsToImage(newImage)
-	global.FinalImage.Refresh()
+	wg.Wait()
+	global.ExecutionTime.SetText(time.Since(start).String())
+	return image
 }
 
-func axis(fun AxisTransformFunc) {
-	img := *global.ImageOne
-	if img == nil {
-		img = *global.ImageTwo
-	}
+func bothMultithread(fun PixelsTransformFunc, width, height int, pixelOne, pixelTwo, image [][]color.RGBA) [][]color.RGBA {
+	start := time.Now()
+	numCPU := runtime.NumCPU()
+	var wg sync.WaitGroup
+	wg.Add(numCPU)
 
-	pixels := ConvertImageToPixels(img)
+	chunkSize := max(width/numCPU, 1)
 
-	xLen := len(pixels)
-	yLen := len(pixels[0])
-
-	newImage := make([][]color.Color, xLen)
-	for i := range newImage {
-		newImage[i] = make([]color.Color, yLen)
-	}
-
-	numWorkers := runtime.NumCPU()
-	var wg = sync.WaitGroup{}
-
-	chunkSize := max(xLen/numWorkers, 1)
-
-	for i := range numWorkers {
-		wg.Add(1)
-
+	for i := range numCPU {
 		startX := i * chunkSize
-		endX := startX + chunkSize
-		if i == numWorkers-1 {
-			endX = xLen
+		endX := (i + 1) * chunkSize
+		if i == numCPU-1 {
+			endX = width
 		}
 
 		go func(startX, endX int) {
 			defer wg.Done()
+			for x := startX; x < endX; x++ {
+				for y := range height {
+					image[x][y] = fun(pixelOne[x][y], pixelTwo[x][y])
+				}
+			}
+		}(startX, endX)
+	}
 
-			for x := range xLen {
-				for y := range yLen {
-					pixel := pixels[x][y]
-					originalColor, ok := color.RGBAModel.Convert(pixel).(color.RGBA)
-					if !ok {
-						slog.Error("type conversion went wrong")
-					}
+	wg.Wait()
+	global.ExecutionTime.SetText(time.Since(start).String())
+	return image
+}
 
-					newX, newY, newColor := fun(x, y, xLen, yLen, originalColor)
+func axisMultithread(fun AxisTransformFunc, width, height int, pixels, image [][]color.RGBA) [][]color.RGBA {
+	start := time.Now()
+	numCPU := runtime.NumCPU()
+	var wg sync.WaitGroup
+	wg.Add(numCPU)
 
-					if newX >= 0 && newX < xLen && newY >= 0 && newY < yLen {
-						newImage[newX][newY] = newColor
+	chunkSize := max(width/numCPU, 1)
+
+	for i := range numCPU {
+		startX := i * chunkSize
+		endX := (i + 1) * chunkSize
+		if i == numCPU-1 {
+			endX = width
+		}
+
+		go func(startX, endX int) {
+			defer wg.Done()
+			for x := startX; x < endX; x++ {
+				for y := range height {
+					newX, newY, newColor := fun(x, y, width, height, pixels[x][y])
+
+					if newX >= 0 && newX < width && newY >= 0 && newY < height {
+						image[newX][newY] = newColor
 					}
 				}
 			}
 		}(startX, endX)
 	}
+
 	wg.Wait()
 
-	global.FinalImage.Image = ConvertPixelsToImage(newImage)
-	global.FinalImage.Refresh()
-}
-
-func threadOne(fun PixelTransformFunc) {
-	start := time.Now()
-	img := *global.ImageOne
-	if img == nil {
-		img = *global.ImageTwo
-	}
-
-	pixels := ConvertImageToPixels(img)
-
-	xLen := len(pixels)
-	yLen := len(pixels[0])
-
-	newImage := make([][]color.Color, xLen)
-	for i := range newImage {
-		newImage[i] = make([]color.Color, yLen)
-	}
-
-	wg := sync.WaitGroup{}
-	for x := range xLen {
-		for y := range yLen {
-			wg.Add(1)
-			go func(x, y int) {
-				pixel := pixels[x][y]
-				originalColor, ok := color.RGBAModel.Convert(pixel).(color.RGBA)
-				if !ok {
-					slog.Error("type conversion went wrong")
-				}
-				newColor := fun(originalColor)
-
-				newImage[x][y] = newColor
-				wg.Done()
-			}(x, y)
-		}
-	}
-	wg.Wait()
-
-	global.FinalImage.Image = ConvertPixelsToImage(newImage)
-	global.FinalImage.Refresh()
 	global.ExecutionTime.SetText(time.Since(start).String())
-}
-
-func threadTwo(fun PixelsTransformFunc) {
-	start := time.Now()
-
-	pixelsOne := ConvertImageToPixels(*global.ImageOne)
-	pixelsTwo := ConvertImageToPixels(*global.ImageTwo)
-
-	xLen := len(pixelsOne)
-	yLen := len(pixelsOne[0])
-
-	newImage := make([][]color.Color, xLen)
-	for i := range newImage {
-		newImage[i] = make([]color.Color, yLen)
-	}
-
-	wg := sync.WaitGroup{}
-	for x := range xLen {
-		for y := range yLen {
-			wg.Add(1)
-			go func(x, y int) {
-				ogColorOne, ok := color.RGBAModel.Convert(pixelsOne[x][y]).(color.RGBA)
-				if !ok {
-					slog.Error("conversion went wrong")
-				}
-
-				ogColorTwo, ok := color.RGBAModel.Convert(pixelsTwo[x][y]).(color.RGBA)
-				if !ok {
-					slog.Error("conversion went wrong")
-				}
-
-				newColor := fun(ogColorOne, ogColorTwo)
-
-				newImage[x][y] = newColor
-				wg.Done()
-			}(x, y)
-		}
-	}
-	wg.Wait()
-
-	global.FinalImage.Image = ConvertPixelsToImage(newImage)
-	global.FinalImage.Refresh()
-	global.ExecutionTime.SetText(time.Since(start).String())
-}
-
-func threadAxis(fun AxisTransformFunc) {
-	start := time.Now()
-	img := *global.ImageOne
-	if img == nil {
-		img = *global.ImageTwo
-	}
-
-	pixels := ConvertImageToPixels(img)
-
-	xLen := len(pixels)
-	yLen := len(pixels[0])
-
-	newImage := make([][]color.Color, xLen)
-	for i := range newImage {
-		newImage[i] = make([]color.Color, yLen)
-	}
-
-	wg := sync.WaitGroup{}
-	for x := range xLen {
-		for y := range yLen {
-			wg.Add(1)
-			go func(x, y int) {
-				pixel := pixels[x][y]
-				originalColor, ok := color.RGBAModel.Convert(pixel).(color.RGBA)
-				if !ok {
-					slog.Error("type conversion went wrong")
-				}
-
-				newX, newY, newColor := fun(x, y, xLen, yLen, originalColor)
-
-				if newX >= 0 && newX < xLen && newY >= 0 && newY < yLen {
-					newImage[newX][newY] = newColor
-				}
-				wg.Done()
-			}(x, y)
-		}
-	}
-	wg.Wait()
-
-	global.FinalImage.Image = ConvertPixelsToImage(newImage)
-	global.FinalImage.Refresh()
-	global.ExecutionTime.SetText(time.Since(start).String())
+	return image
 }
 
 func Process(service interface{}) func() {
 	return func() {
+		if *global.ImageOne == nil && *global.ImageTwo == nil {
+			slog.Error("No image set")
+			return
+		}
+
+		var pixelsTwo *[][]color.RGBA
+		imgOne := *global.ImageOne
+		if imgOne == nil {
+			imgOne = *global.ImageTwo
+		}
+
+		pixelsOne := ConvertImageToPixels(imgOne)
+		if *global.ImageTwo != nil {
+			p := ConvertImageToPixels(*global.ImageTwo)
+			pixelsTwo = &p
+		}
+
+		xLen := len(pixelsOne)
+		yLen := len(pixelsOne[0])
+
+		newImage := make([][]color.RGBA, xLen)
+		for i := range xLen {
+			newImage[i] = make([]color.RGBA, yLen)
+		}
+
 		switch s := service.(type) {
 		case PixelTransformFunc:
-			if *global.ImageOne != nil || *global.ImageTwo != nil {
-				if global.UseSingleThread {
-					threadOne(s)
-					return
-				}
-				single(s)
-				return
+			if global.UseSingleThread {
+				newImage = single(s, xLen, yLen, pixelsOne, newImage)
+				break
 			}
-			slog.Error("No image set")
-			return
+			newImage = singleMultithread(s, xLen, yLen, pixelsOne, newImage)
 		case PixelsTransformFunc:
-			if *global.ImageOne != nil && *global.ImageTwo != nil {
+			if pixelsTwo != nil {
 				if global.UseSingleThread {
-					threadTwo(s)
-					return
+					newImage = both(s, xLen, yLen, pixelsOne, *pixelsTwo, newImage)
 				}
-				both(s)
-				return
+				newImage = bothMultithread(s, xLen, yLen, pixelsOne, *pixelsTwo, newImage)
 			}
-			slog.Error("Images aren't set")
-			return
 		case AxisTransformFunc:
-			if *global.ImageOne != nil || *global.ImageTwo != nil {
-				if global.UseSingleThread {
-					threadAxis(s)
-					return
-				}
-				axis(s)
-				return
+			if global.UseSingleThread {
+				newImage = axis(s, xLen, yLen, pixelsOne, newImage)
 			}
-			slog.Error("No image set")
-			return
+			newImage = axisMultithread(s, xLen, yLen, pixelsOne, newImage)
 		default:
 			slog.Error("invalid service", "type", s)
 			return
 		}
+
+		global.FinalImage.Image = ConvertPixelsToImage(newImage)
+		global.FinalImage.Refresh()
 	}
 }

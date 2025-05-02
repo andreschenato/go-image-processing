@@ -5,14 +5,14 @@ import (
 	"image/color"
 )
 
-func ConvertImageToPixels(img image.Image) [][]color.Color {
+func ConvertImageToPixels(img image.Image) [][]color.RGBA {
 	size := img.Bounds().Size()
-	var pixels [][]color.Color
+	var pixels [][]color.RGBA
 
 	for i := range size.X {
-		var y []color.Color
+		var y []color.RGBA
 		for j := range size.Y {
-			y = append(y, img.At(i, j))
+			y = append(y, color.RGBAModel.Convert(img.At(i, j)).(color.RGBA))
 		}
 		pixels = append(pixels, y)
 	}
@@ -20,24 +20,13 @@ func ConvertImageToPixels(img image.Image) [][]color.Color {
 	return pixels
 }
 
-func ConvertPixelsToImage(pixels [][]color.Color) image.Image {
+func ConvertPixelsToImage(pixels [][]color.RGBA) image.Image {
 	rect := image.Rect(0, 0, len(pixels), len(pixels[0]))
 	nImg := image.NewRGBA(rect)
 
 	for x := range len(pixels) {
 		for y := range len(pixels[0]) {
-			q := pixels[x]
-			if q == nil {
-				continue
-			}
-			p := pixels[x][y]
-			if p == nil {
-				continue
-			}
-			original, ok := color.RGBAModel.Convert(p).(color.RGBA)
-			if ok {
-				nImg.Set(x, y, original)
-			}
+			nImg.Set(x, y, pixels[x][y])
 		}
 	}
 
