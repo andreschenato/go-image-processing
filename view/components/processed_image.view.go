@@ -12,25 +12,36 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func ProcessedImage() (*fyne.Container) {
-	placeholder := canvas.NewRectangle(color.RGBA{40,40,42,255})
-	placeholder.SetMinSize(fyne.NewSize(250,250))
+func ProcessedImage() *fyne.Container {
+	placeholder := canvas.NewRectangle(color.RGBA{40, 40, 42, 255})
+	placeholder.SetMinSize(fyne.NewSize(250, 250))
 
 	global.FinalImage = canvas.NewImageFromImage(nil)
 	global.FinalImage.FillMode = canvas.ImageFillContain
 	global.FinalImage.SetMinSize(fyne.NewSize(250, 250))
 
-	downloadBtn := widget.NewButton("Download Image", func () {
-		utils.DownloadImage()
-	})
+	fixedLayout := layout.NewGridWrapLayout(fyne.NewSize(250, 50))
+
+	downloadBtn := container.New(
+		fixedLayout,
+		widget.NewButton("Download Image", func() {
+			utils.DownloadImage()
+		}),
+	)
+
+	clearBtn := container.New(
+		fixedLayout,
+		widget.NewButton("Clear", func() {
+			global.FinalImage.Image = nil
+			global.FinalImage.Refresh()
+		}),
+	)
 
 	imgContainer := container.NewStack(placeholder, global.FinalImage)
 
-	fixedLayout := layout.NewGridWrapLayout(fyne.NewSize(250, 50))
-	fixedBtn := container.New(fixedLayout, downloadBtn)
-
 	return container.NewVBox(
 		container.NewPadded(imgContainer),
-		container.NewPadded(fixedBtn),
+		container.NewPadded(downloadBtn),
+		container.NewPadded(clearBtn),
 	)
 }

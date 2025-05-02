@@ -19,7 +19,7 @@ func DownloadImage() {
 		return
 	}
 
-	file, err := dialog.File().Filter("Image file", "jpeg", "jpg", "png", "gif", "tif", "bmp").
+	file, err := dialog.File().Filter("Save image file", "jpeg", "jpg", "png", "gif", "tif", "bmp").
 		Title("Export image to file").Save()
 	if err != nil {
 		slog.Error("Error trying to save file")

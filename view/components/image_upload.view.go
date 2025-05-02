@@ -13,25 +13,36 @@ import (
 )
 
 func ImageUploadView() (*fyne.Container, *image.Image) {
-	placeholder := canvas.NewRectangle(color.RGBA{40,40,42,255})
-	placeholder.SetMinSize(fyne.NewSize(250,250))
+	placeholder := canvas.NewRectangle(color.RGBA{40, 40, 42, 255})
+	placeholder.SetMinSize(fyne.NewSize(250, 250))
 
 	img := canvas.NewImageFromImage(nil)
 	img.FillMode = canvas.ImageFillContain
 	img.SetMinSize(fyne.NewSize(250, 250))
 
-	uploadBtn := widget.NewButton("Upload Image", func() {
-		utils.UploadImage(img)
-	})
+	fixedLayout := layout.NewGridWrapLayout(fyne.NewSize(250, 50))
+
+	uploadBtn := container.New(
+		fixedLayout,
+		widget.NewButton("Upload Image", func() {
+			utils.UploadImage(img)
+		}),
+	)
+
+	clearBtn := container.New(
+		fixedLayout,
+		widget.NewButton("Clear", func() {
+			img.Image = nil
+			img.Refresh()
+		}),
+	)
 
 	imgContainer := container.NewStack(placeholder, img)
 
-	fixedLayout := layout.NewGridWrapLayout(fyne.NewSize(250, 50))
-	fixedBtn := container.New(fixedLayout, uploadBtn)
-
 	imgCombo := container.NewVBox(
 		container.NewPadded(imgContainer),
-		container.NewPadded(fixedBtn),
+		container.NewPadded(uploadBtn),
+		container.NewPadded(clearBtn),
 	)
 	return container.NewCenter(imgCombo), &img.Image
 }

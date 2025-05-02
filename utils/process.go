@@ -105,9 +105,10 @@ func Process(service interface{}) func() {
 		case PixelTransformFunc:
 			newImage = single(s, xLen, yLen, pixelsOne, newImage)
 		case PixelsTransformFunc:
-			if pixelsTwo != nil {
-				newImage = both(s, xLen, yLen, pixelsOne, *pixelsTwo, newImage)
+			if pixelsTwo == nil {
+				return
 			}
+			newImage = both(s, xLen, yLen, pixelsOne, *pixelsTwo, newImage)
 		case AxisTransformFunc:
 			newImage = axis(s, xLen, yLen, pixelsOne, newImage)
 		default:
