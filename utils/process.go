@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"image"
 	"image/color"
 	"image_processing/global"
 	"log/slog"
+	"math"
 	"runtime"
 	"sync"
 	"time"
@@ -118,5 +120,75 @@ func Process(service interface{}) func() {
 
 		global.FinalImage.Image = ConvertPixelsToImage(newImage)
 		global.FinalImage.Refresh()
+		global.Hist.Image = HistogramValues(global.FinalImage.Image)
+		global.Hist.Refresh()
 	}
+}
+
+func HistogramEqualization() {
+	img := *global.ImageOne
+	if img == nil {
+		img = *global.ImageTwo
+	}
+	bounds := img.Bounds()
+	width, height := bounds.Max.X, bounds.Max.Y
+	totalPixels := width * height
+
+	var histogram [256]int
+
+	for y := range height {
+		for x := range width {
+			r, g, b, _ := img.At(x, y).RGBA()
+			gray := uint8((float64(r) + float64(g) + float64(b)) / 3)
+			histogram[gray]++
+		}
+	}
+
+	var cdf [256]int
+	cdf[0] = histogram[0]
+	for i := 1; i < 256; i++ {
+		cdf[i] = cdf[i-1] + histogram[i]
+	}
+
+	cdfMin := 0
+	for i := range 256 {
+		if cdf[i] > 0 {
+			cdfMin = cdf[i]
+			break
+		}
+	}
+
+	var lookupTable [256]uint8
+	for i := range 256 {
+		if cdf[i] == 0 {
+			lookupTable[i] = 0
+		} else {
+			numerator := float64(cdf[i] - cdfMin)
+			denominator := float64(totalPixels - cdfMin)
+			result := numerator / denominator * 255.0
+			lookupTable[i] = uint8(math.Floor(result))
+		}
+	}
+
+	equalizedImg := image.NewRGBA(bounds)
+	for y := range height {
+		for x := range width {
+			r, g, b, a := img.At(x, y).RGBA()
+			gray := uint8((float64(r) + float64(g) + float64(b)) / 3)
+
+			newGray := lookupTable[gray]
+
+			equalizedImg.Set(x, y, color.RGBA{
+				R: newGray,
+				G: newGray,
+				B: newGray,
+				A: uint8(a >> 8),
+			})
+		}
+	}
+
+	global.FinalImage.Image = equalizedImg
+	global.FinalImage.Refresh()
+	global.Hist.Image = HistogramValues(global.FinalImage.Image)
+	global.Hist.Refresh()
 }

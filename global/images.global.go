@@ -11,4 +11,6 @@ var (
 	ImageTwo *image.Image
 
 	FinalImage *canvas.Image
+
+	Hist *canvas.Image
 )

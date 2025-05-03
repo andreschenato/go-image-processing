@@ -2,6 +2,7 @@ package components
 
 import (
 	"image_processing/service"
+	"image_processing/utils"
 	"image_processing/view/generics"
 	"image_processing/view/operations"
 
@@ -12,7 +13,7 @@ import (
 )
 
 func Sections() *fyne.Container {
-	opts := []string{"Arithmetics", "Grayscale", "Axis", "Blending", "Logic"}
+	opts := []string{"Arithmetics", "Grayscale", "Axis", "Blending", "Logic", "Equalize"}
 	var components fyne.Container
 	selection := widget.NewSelect(opts[:], func(s string) {
 		switch s {
@@ -26,6 +27,10 @@ func Sections() *fyne.Container {
 			components = *operations.Blending()
 		case "Logic":
 			components = *operations.Logics()
+		case "Equalize":
+			components = *container.NewCenter(widget.NewButton("Equalize", func() {
+				utils.HistogramEqualization()
+			}))
 		}
 	})
 

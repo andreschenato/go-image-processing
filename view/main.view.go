@@ -14,6 +14,7 @@ func MainView(a fyne.App) fyne.Window {
 
 	components := container.NewVBox(
 		components.ImageComboView(),
+		components.Histogram(),
 		components.Sections(),
 	)
 

@@ -3,6 +3,7 @@ package components
 import (
 	"image"
 	"image/color"
+	"image_processing/global"
 	"image_processing/utils"
 
 	"fyne.io/fyne/v2"
@@ -26,6 +27,8 @@ func ImageUploadView() (*fyne.Container, *image.Image) {
 		fixedLayout,
 		widget.NewButton("Upload Image", func() {
 			utils.UploadImage(img)
+			global.Hist.Image = utils.HistogramValues(img.Image)
+			global.Hist.Refresh()
 		}),
 	)
 
