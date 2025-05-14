@@ -77,10 +77,9 @@ func histogramEqualization(fun HistEqualizationFunc, width, height int, pixel, i
 	}
 
 	lookupTable := make([]uint8, 256)
-	totalPixels := width * height
 	for i := range 256 {
 		numerator := float64(cdf[i] - cdfMin)
-		denominator := float64(totalPixels - cdfMin)
+		denominator := float64((width * height) - cdfMin)
 		result := numerator / denominator * 255.0
 		lookupTable[i] = uint8(math.Max(0, math.Min(255, math.Floor(result))))
 	}

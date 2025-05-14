@@ -19,12 +19,6 @@ func Grayscale() utils.PixelTransformFunc {
 
 func Equalize() utils.HistEqualizationFunc {
 	return func(pixel color.RGBA) color.RGBA {
-		grey := uint8((float64(pixel.R) + float64(pixel.G) + float64(pixel.B)) / 3)
-		return color.RGBA{
-			R: grey,
-			G: grey,
-			B: grey,
-			A: 255,
-		}
+		return pixel
 	}
 }
