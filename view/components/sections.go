@@ -2,7 +2,6 @@ package components
 
 import (
 	"image_processing/service"
-	"image_processing/utils"
 	"image_processing/view/generics"
 	"image_processing/view/operations"
 
@@ -28,9 +27,7 @@ func Sections() *fyne.Container {
 		case "Logic":
 			components = *operations.Logics()
 		case "Equalize":
-			components = *container.NewCenter(widget.NewButton("Equalize", func() {
-				utils.HistogramEqualization()
-			}))
+			components = *generics.Button("Equalize", service.Equalize())
 		}
 	})
 

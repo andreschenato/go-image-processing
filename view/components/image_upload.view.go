@@ -27,7 +27,7 @@ func ImageUploadView() (*fyne.Container, *image.Image) {
 		fixedLayout,
 		widget.NewButton("Upload Image", func() {
 			utils.UploadImage(img)
-			global.Hist.Image = utils.HistogramValues(img.Image)
+			global.Hist.Image, _ = utils.HistogramValues(img.Image)
 			global.Hist.Refresh()
 		}),
 	)
