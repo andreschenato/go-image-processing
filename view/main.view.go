@@ -5,6 +5,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 )
 
 var Window fyne.Window
@@ -18,8 +19,17 @@ func MainView(a fyne.App) fyne.Window {
 		components.Sections(),
 	)
 
+	scroll := container.NewCenter(
+		container.New(
+			layout.NewGridWrapLayout(fyne.NewSize(components.MinSize().Width+100, components.MinSize().Height+100)),
+			container.NewVScroll(
+				components,
+			),
+		),
+	)
+
 	content := container.NewBorder(
-		components,
+		scroll,
 		nil,
 		nil,
 		nil,

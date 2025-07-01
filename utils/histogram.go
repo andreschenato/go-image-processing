@@ -35,7 +35,8 @@ func HistogramValues(img image.Image) (image.Image, []int) {
 	}
 
 	p := plot.New()
-	p.Title.Text = "Histograma"
+	p.HideAxes()
+	p.BackgroundColor = color.RGBA{40, 40, 42, 255}
 	p.X.Min = 0
 	p.X.Max = 255
 
@@ -43,9 +44,9 @@ func HistogramValues(img image.Image) (image.Image, []int) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	bars.LineStyle.Color = color.Black
+	bars.LineStyle.Color = color.White
 	bars.Width = 1
-	bars.Color = color.Black
+	bars.Color = color.White
 
 	p.Add(bars)
 
