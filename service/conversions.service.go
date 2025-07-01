@@ -22,3 +22,20 @@ func Equalize() utils.HistEqualizationFunc {
 		return pixel
 	}
 }
+
+func Thresholding(threshold float64) utils.PixelTransformFunc {
+	return func(pixel color.RGBA) color.RGBA {
+		grey := uint8((float64(pixel.R) + float64(pixel.G) + float64(pixel.B)) / 3)
+		binary := 0
+		if grey >= uint8(threshold) {
+			binary = 255
+		}
+
+		return color.RGBA{
+			R: uint8(binary),
+			G: uint8(binary),
+			B: uint8(binary),
+			A: 255,
+		}
+	}
+}
