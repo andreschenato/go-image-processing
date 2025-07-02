@@ -45,6 +45,8 @@ func Process(service interface{}) func() {
 			newImage = axis(s, width, height, pixelsOne, newImage)
 		case HistEqualizationFunc:
 			newImage = histogramEqualization(s, width, height, pixelsOne, newImage)
+		case LowPassFilterFunc:
+			newImage = lowPass(s, width, height, pixelsOne, newImage)
 		default:
 			slog.Error("invalid service", "type", s)
 			return
