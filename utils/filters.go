@@ -22,6 +22,7 @@ func lowPass(fun LowPassFilterFunc, width, height int, pixel, image [][]color.RG
 
 func mask(pixels [][]color.RGBA, width, height, x, y int) [][]color.RGBA {
 	maskSize := global.MaskSize
+	offset := maskSize / 2
 
 	neighbors := make([][]color.RGBA, maskSize)
 	var wg sync.WaitGroup
@@ -35,12 +36,15 @@ func mask(pixels [][]color.RGBA, width, height, x, y int) [][]color.RGBA {
 		go func(i int) {
 			defer wg.Done()
 			for j := range maskSize {
-				newX := x + i - 1
-				newY := y + j - 1
+				newX := x + i - offset
+				newY := y + j - offset
 
-				newX = max(newX, 0)
-				newY = max(newY, 0)
-
+				if newX < 0 {
+					newX = 0
+				}
+				if newY < 0 {
+					newY = 0
+				}
 				if newX >= width {
 					newX = width - 1
 				}
