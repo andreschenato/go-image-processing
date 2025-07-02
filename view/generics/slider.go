@@ -91,6 +91,9 @@ func FilterSlider() *fyne.Container {
 	orderSlider := Slider(0, float64(global.MaskSize*global.MaskSize)-1, 0, 1, "Order", service.Order)
 	orderSliderHolder := container.NewHBox(orderSlider)
 
+	gausianSlider := Slider(0.1, 5, 0.1, 0.1, "Gaussian", service.Gaussian)
+	gausianSliderHolder := container.NewHBox(gausianSlider)
+
 	slider.OnChanged = func(value float64) {
 		maskSize := 3 + int(value)*2
 		txt.SetText(strconv.Itoa(maskSize))
@@ -105,6 +108,7 @@ func FilterSlider() *fyne.Container {
 			container.NewVBox(
 				sliderBox,
 				orderSliderHolder,
+				gausianSliderHolder,
 			),
 		),
 	)

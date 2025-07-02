@@ -2,9 +2,11 @@ package service
 
 import (
 	"image/color"
+	"image_processing/global"
 	"image_processing/utils"
-	"sort"
+	"math"
 	"slices"
+	"sort"
 )
 
 func Min() utils.LowPassFilterFunc {
@@ -180,6 +182,57 @@ func Conservative() utils.LowPassFilterFunc {
 			R: uint8(mainR),
 			G: uint8(mainG),
 			B: uint8(mainB),
+			A: 255,
+		}
+	}
+}
+
+func Gaussian(sigma float64) utils.LowPassFilterFunc {
+	return func(pixels [][]color.RGBA) color.RGBA {
+		center := int(global.MaskSize / 2)
+
+		weights := make([][]float64, global.MaskSize)
+		var totalKernelWeight float64
+
+		for i := range global.MaskSize {
+			weights[i] = make([]float64, global.MaskSize)
+			for j := range global.MaskSize {
+				x := float64(j - center)
+				y := float64(i - center)
+
+				exponent := -(math.Pow(x, 2) + math.Pow(y, 2)) / (2 * math.Pow(sigma, 2))
+				weight := (1.0 / (2 * math.Pi * math.Pow(sigma, 2))) * math.Exp(exponent)
+
+				weights[i][j] = weight
+				totalKernelWeight += weight
+			}
+		}
+
+		for i := range global.MaskSize {
+			for j := range global.MaskSize {
+				weights[i][j] /= totalKernelWeight
+			}
+		}
+
+		var weightedR, weightedG, weightedB float64
+
+		for i, row := range pixels {
+			for j, px := range row {
+				normalizedWeight := weights[i][j]
+				weightedR += float64(px.R) * normalizedWeight
+				weightedG += float64(px.G) * normalizedWeight
+				weightedB += float64(px.B) * normalizedWeight
+			}
+		}
+
+		r := math.Max(0, math.Min(255, weightedR))
+		g := math.Max(0, math.Min(255, weightedG))
+		b := math.Max(0, math.Min(255, weightedB))
+
+		return color.RGBA{
+			R: uint8(r),
+			G: uint8(g),
+			B: uint8(b),
 			A: 255,
 		}
 	}
