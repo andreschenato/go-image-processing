@@ -15,6 +15,7 @@ func LowPassFilters() *fyne.Container {
 			generics.Button("MAX", service.Max()),
 			generics.Button("MEAN", service.Mean()),
 			generics.Button("Median", service.Median()),
+			generics.Button("Conservative", service.Conservative()),
 		),
 	)
 
