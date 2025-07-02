@@ -2,6 +2,7 @@ package utils
 
 import (
 	"image/color"
+	"image_processing/global"
 	"sync"
 )
 
@@ -20,18 +21,20 @@ func lowPass(fun LowPassFilterFunc, width, height int, pixel, image [][]color.RG
 }
 
 func mask(pixels [][]color.RGBA, width, height, x, y int) [][]color.RGBA {
-	neighbors := make([][]color.RGBA, 3)
+	maskSize := global.MaskSize
+
+	neighbors := make([][]color.RGBA, maskSize)
 	var wg sync.WaitGroup
 
-	for i := range 3 {
-		neighbors[i] = make([]color.RGBA, 3)
+	for i := range maskSize {
+		neighbors[i] = make([]color.RGBA, maskSize)
 	}
 
-	for i := range 3 {
+	for i := range maskSize {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			for j := range 3 {
+			for j := range maskSize {
 				newX := x + i - 1
 				newY := y + j - 1
 

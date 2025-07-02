@@ -14,18 +14,16 @@ func LowPassFilters() *fyne.Container {
 			generics.Button("MIN", service.Min()),
 			generics.Button("MAX", service.Max()),
 			generics.Button("MEAN", service.Mean()),
+			generics.Button("Median", service.Median()),
 		),
 	)
 
-	// sliders := container.NewCenter(
-	// 	container.NewVBox(
-	// 	),
-	// )
+	sliders := generics.FilterSlider()
 
 	components := container.NewCenter(
 		container.NewVBox(
 			buttons,
-			// sliders,
+			sliders,
 		),
 	)
 

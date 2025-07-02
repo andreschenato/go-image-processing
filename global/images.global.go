@@ -13,4 +13,6 @@ var (
 	FinalImage *canvas.Image
 
 	Hist *canvas.Image
+
+	MaskSize int = 3
 )
