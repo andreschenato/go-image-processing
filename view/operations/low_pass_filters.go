@@ -11,9 +11,9 @@ import (
 func LowPassFilters() *fyne.Container {
 	buttons := container.NewCenter(
 		container.NewHBox(
-			generics.Button("MIN", service.Min()),
-			generics.Button("MAX", service.Max()),
-			generics.Button("MEAN", service.Mean()),
+			generics.Button("Min", service.Min()),
+			generics.Button("Max", service.Max()),
+			generics.Button("Mean", service.Mean()),
 			generics.Button("Median", service.Median()),
 			generics.Button("Conservative", service.Conservative()),
 		),

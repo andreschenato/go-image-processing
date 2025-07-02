@@ -22,9 +22,9 @@ func ImageComboView() *fyne.Container {
 	}
 
 	var equals = canvas.NewText("=", color.White)
-	var imgA = canvas.NewText("Imagem A", color.White)
-	var imgB = canvas.NewText("Imagem B", color.White)
-	var final = canvas.NewText("Resultado", color.White)
+	var imgA = canvas.NewText("Image A", color.White)
+	var imgB = canvas.NewText("Image B", color.White)
+	var final = canvas.NewText("Result", color.White)
 
 	equals.TextSize = 48
 	imgA.TextSize = 36
