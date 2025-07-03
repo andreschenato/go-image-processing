@@ -49,6 +49,8 @@ func Process(service interface{}) func() {
 			newImage = lowPass(s, width, height, pixelsOne, newImage)
 		case HighPassFilterFunc:
 			newImage = highPass(s, width, height, pixelsOne, newImage)
+		case MorphOpsFunc:
+			newImage = morph(s, width, height, pixelsOne, newImage)
 		default:
 			slog.Error("invalid service", "type", s)
 			return

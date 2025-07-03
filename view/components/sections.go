@@ -10,7 +10,7 @@ import (
 )
 
 func Sections() *fyne.Container {
-	opts := []string{"Arithmetics", "Conversions", "Axis", "Blending", "Logic", "Low-Pass", "High-Pass"}
+	opts := []string{"Arithmetics", "Conversions", "Axis", "Blending", "Logic", "Low-Pass", "High-Pass", "Morph"}
 	var components fyne.Container
 	selection := widget.NewSelect(opts[:], func(s string) {
 		switch s {
@@ -28,6 +28,8 @@ func Sections() *fyne.Container {
 			components = *operations.LowPassFilters()
 		case "High-Pass":
 			components = *operations.HighPassFilters()
+		case "Morph":
+			components = *operations.Morph()
 		}
 	})
 
