@@ -15,4 +15,6 @@ var (
 	FinalHist *canvas.Image
 
 	MaskSize int = 3
+
+	UseDiamondMask bool = false
 )

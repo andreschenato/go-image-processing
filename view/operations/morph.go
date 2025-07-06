@@ -19,9 +19,23 @@ func Morph() *fyne.Container {
 		),
 	)
 
+	radios := container.NewCenter(
+		container.NewHBox(
+			generics.MaskFormat(),
+		),
+	)
+
+	sliders := container.NewCenter(
+		container.NewVBox(
+			generics.MaskSlider(),
+		),
+	)
+
 	components := container.NewCenter(
 		container.NewVBox(
 			buttons,
+			radios,
+			sliders,
 		),
 	)
 
