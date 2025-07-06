@@ -2,67 +2,111 @@ package service
 
 import (
 	"image/color"
+	"image_processing/global"
 	"image_processing/utils"
 )
 
-func Dilation() utils.HighPassFilterFunc {
-	return func(pixels [][]color.RGBA) color.RGBA {
-		mask := [][]int{
-			{1, 1, 1},
-			{1, 1, 1},
-			{1, 1, 1},
+func buildSquareMask() [][]int {
+	mask := make([][]int, global.MaskSize)
+	for i := range global.MaskSize {
+		mask[i] = make([]int, global.MaskSize)
+		for j := range global.MaskSize {
+			mask[i][j] = 1
 		}
+	}
+	return mask
+}
 
-		maxR := 0
-		maxG := 0
-		maxB := 0
+func applyMorph(pixels [][]color.RGBA, mask [][]int, isDilation bool) [][]color.RGBA {
+	height := len(pixels)
+	width := len(pixels[0])
+	maskSize := global.MaskSize
+	offset := maskSize / 2
 
-		for x, row := range pixels {
-			for y, px := range row {
-				if mask[x][y] == 1 {
-					maxR = max(maxR, int(px.R))
-					maxG = max(maxG, int(px.G))
-					maxB = max(maxB, int(px.B))
+	result := make([][]color.RGBA, height)
+	for i := range result {
+		result[i] = make([]color.RGBA, width)
+	}
+
+	for i := range height {
+		for j := range width {
+			var R, G, B int
+			if isDilation {
+				R, G, B = 0, 0, 0
+			} else {
+				R, G, B = 255, 255, 255
+			}
+
+			for mx := range maskSize {
+				for my := range maskSize {
+					ix := i + mx - offset
+					iy := j + my - offset
+					if ix >= 0 && ix < height && iy >= 0 && iy < width && mask[mx][my] == 1 {
+						px := pixels[ix][iy]
+						if isDilation {
+							R = max(R, int(px.R))
+							G = max(G, int(px.G))
+							B = max(B, int(px.B))
+						} else {
+							R = min(R, int(px.R))
+							G = min(G, int(px.G))
+							B = min(B, int(px.B))
+						}
+					}
 				}
 			}
-		}
 
-		return color.RGBA{
-			R: uint8(maxR),
-			G: uint8(maxG),
-			B: uint8(maxB),
-			A: 255,
+			result[i][j] = color.RGBA{
+				R: uint8(R),
+				G: uint8(G),
+				B: uint8(B),
+				A: 255,
+			}
 		}
+	}
+
+	return result
+}
+
+func Dilation() utils.MorphOpsFunc {
+	return func(pixels [][]color.RGBA) [][]color.RGBA {
+		mask := buildSquareMask()
+		return applyMorph(pixels, mask, true)
 	}
 }
 
-func Erosion() utils.HighPassFilterFunc {
-	return func(pixels [][]color.RGBA) color.RGBA {
-		mask := [][]int{
-			{1, 1, 1},
-			{1, 1, 1},
-			{1, 1, 1},
-		}
+func Erosion() utils.MorphOpsFunc {
+	return func(pixels [][]color.RGBA) [][]color.RGBA {
+		mask := buildSquareMask()
+		return applyMorph(pixels, mask, false)
+	}
+}
 
-		minR := 255
-		minG := 255
-		minB := 255
+func Opening() utils.MorphOpsFunc {
+	return func(pixels [][]color.RGBA) [][]color.RGBA {
+		mask := buildSquareMask()
+		eroded := applyMorph(pixels, mask, false)
+		return applyMorph(eroded, mask, true)
+	}
+}
 
+func Closing() utils.MorphOpsFunc {
+	return func(pixels [][]color.RGBA) [][]color.RGBA {
+		mask := buildSquareMask()
+		dilated := applyMorph(pixels, mask, true)
+		return applyMorph(dilated, mask, false)
+	}
+}
+
+func Outline() utils.MorphOpsFunc {
+	return func(pixels [][]color.RGBA) [][]color.RGBA {
+		mask := buildSquareMask()
+		eroded := applyMorph(pixels, mask, false)
 		for x, row := range pixels {
 			for y, px := range row {
-				if mask[x][y] == 1 {
-					minR = min(minR, int(px.R))
-					minG = min(minG, int(px.G))
-					minB = min(minB, int(px.B))
-				}
+				pixels[x][y] = Subtract()(px, eroded[x][y])
 			}
 		}
-
-		return color.RGBA{
-			R: uint8(minR),
-			G: uint8(minG),
-			B: uint8(minB),
-			A: 255,
-		}
+		return pixels
 	}
 }

@@ -13,6 +13,9 @@ func Morph() *fyne.Container {
 		container.NewHBox(
 			generics.Button("Dilation", service.Dilation()),
 			generics.Button("Erosion", service.Erosion()),
+			generics.Button("Opening", service.Opening()),
+			generics.Button("Closing", service.Closing()),
+			generics.Button("Outline", service.Outline()),
 		),
 	)
 
