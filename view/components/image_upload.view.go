@@ -3,7 +3,6 @@ package components
 import (
 	"image"
 	"image/color"
-	"image_processing/global"
 	"image_processing/utils"
 
 	"fyne.io/fyne/v2"
@@ -20,6 +19,9 @@ func ImageUploadView() (*fyne.Container, *image.Image) {
 	img := canvas.NewImageFromImage(nil)
 	img.FillMode = canvas.ImageFillContain
 	img.SetMinSize(fyne.NewSize(250, 250))
+	hist := canvas.NewImageFromImage(nil)
+	hist.FillMode = canvas.ImageFillStretch
+	hist.SetMinSize(fyne.NewSize(250, 250))
 
 	fixedLayout := layout.NewGridWrapLayout(fyne.NewSize(250, 50))
 
@@ -27,8 +29,10 @@ func ImageUploadView() (*fyne.Container, *image.Image) {
 		fixedLayout,
 		widget.NewButton("Upload Image", func() {
 			utils.UploadImage(img)
-			global.Hist.Image, _ = utils.HistogramValues(img.Image)
-			global.Hist.Refresh()
+			if img.Image != nil {
+				hist.Image, _ = utils.HistogramValues(img.Image)
+				hist.Refresh()
+			}
 		}),
 	)
 
@@ -36,14 +40,18 @@ func ImageUploadView() (*fyne.Container, *image.Image) {
 		fixedLayout,
 		widget.NewButton("Clear", func() {
 			img.Image = nil
+			hist.Image = nil
 			img.Refresh()
+			hist.Refresh()
 		}),
 	)
 
 	imgContainer := container.NewStack(placeholder, img)
+	histContainer := container.NewStack(placeholder, hist)
 
 	imgCombo := container.NewVBox(
 		container.NewPadded(imgContainer),
+		container.NewPadded(histContainer),
 		container.NewPadded(uploadBtn),
 		container.NewPadded(clearBtn),
 	)

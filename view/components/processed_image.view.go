@@ -20,6 +20,10 @@ func ProcessedImage() *fyne.Container {
 	global.FinalImage.FillMode = canvas.ImageFillContain
 	global.FinalImage.SetMinSize(fyne.NewSize(250, 250))
 
+	global.FinalHist = canvas.NewImageFromImage(nil)
+	global.FinalHist.FillMode = canvas.ImageFillStretch
+	global.FinalHist.SetMinSize(fyne.NewSize(250, 250))
+
 	fixedLayout := layout.NewGridWrapLayout(fyne.NewSize(250, 50))
 
 	downloadBtn := container.New(
@@ -33,14 +37,18 @@ func ProcessedImage() *fyne.Container {
 		fixedLayout,
 		widget.NewButton("Clear", func() {
 			global.FinalImage.Image = nil
+			global.FinalHist.Image = nil
 			global.FinalImage.Refresh()
+			global.FinalHist.Refresh()
 		}),
 	)
 
 	imgContainer := container.NewStack(placeholder, global.FinalImage)
+	histContainer := container.NewStack(placeholder, global.FinalHist)
 
 	return container.NewVBox(
 		container.NewPadded(imgContainer),
+		container.NewPadded(histContainer),
 		container.NewPadded(downloadBtn),
 		container.NewPadded(clearBtn),
 	)

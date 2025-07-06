@@ -2,12 +2,10 @@ package utils
 
 import (
 	"image/color"
-	"image_processing/global"
 	"sync"
 )
 
-func mask(pixels [][]color.RGBA, width, height, x, y int) [][]color.RGBA {
-	maskSize := global.MaskSize
+func mask(pixels [][]color.RGBA, width, height, x, y int, maskSize int) [][]color.RGBA {
 	offset := maskSize / 2
 
 	neighbors := make([][]color.RGBA, maskSize)

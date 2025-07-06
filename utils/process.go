@@ -58,7 +58,7 @@ func Process(service interface{}) func() {
 
 		global.FinalImage.Image = ConvertPixelsToImage(newImage)
 		global.FinalImage.Refresh()
-		global.Hist.Image, _ = HistogramValues(global.FinalImage.Image)
-		global.Hist.Refresh()
+		global.FinalHist.Image, _ = HistogramValues(global.FinalImage.Image)
+		global.FinalHist.Refresh()
 	}
 }
