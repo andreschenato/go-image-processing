@@ -2,106 +2,93 @@ package service
 
 import (
 	"image/color"
-	"image_processing/global"
 	"image_processing/utils"
 )
 
-func buildSquareMask() [][]int {
-	mask := make([][]int, global.MaskSize)
-	for i := range global.MaskSize {
-		mask[i] = make([]int, global.MaskSize)
-		for j := range global.MaskSize {
-			mask[i][j] = 1
-		}
-	}
-	return mask
-}
-
-func applyMorph(pixels [][]color.RGBA, mask [][]int, isDilation bool) [][]color.RGBA {
-	height := len(pixels)
-	width := len(pixels[0])
-	maskSize := global.MaskSize
-	offset := maskSize / 2
-
-	result := make([][]color.RGBA, height)
-	for i := range result {
-		result[i] = make([]color.RGBA, width)
-	}
-
-	for i := range height {
-		for j := range width {
-			var R, G, B int
-			if isDilation {
-				R, G, B = 0, 0, 0
-			} else {
-				R, G, B = 255, 255, 255
-			}
-
-			for mx := range maskSize {
-				for my := range maskSize {
-					ix := i + mx - offset
-					iy := j + my - offset
-					if ix >= 0 && ix < height && iy >= 0 && iy < width && mask[mx][my] == 1 {
-						px := pixels[ix][iy]
-						if isDilation {
-							R = max(R, int(px.R))
-							G = max(G, int(px.G))
-							B = max(B, int(px.B))
-						} else {
-							R = min(R, int(px.R))
-							G = min(G, int(px.G))
-							B = min(B, int(px.B))
-						}
-					}
-				}
-			}
-
-			result[i][j] = color.RGBA{
-				R: uint8(R),
-				G: uint8(G),
-				B: uint8(B),
-				A: 255,
-			}
-		}
-	}
-
-	return result
-}
-
 func Dilation() utils.MorphOpsFunc {
-	return func(pixels [][]color.RGBA) [][]color.RGBA {
-		mask := buildSquareMask()
-		return applyMorph(pixels, mask, true)
+	return func(pixels []color.RGBA, mask [][]int) color.RGBA {
+		var R, G, B int = 0, 0, 0
+
+		for _, px := range pixels {
+			R = max(R, int(px.R))
+			G = max(G, int(px.G))
+			B = max(B, int(px.B))
+		}
+
+		return color.RGBA{
+			R: uint8(R),
+			G: uint8(G),
+			B: uint8(B),
+			A: 255,
+		}
 	}
 }
 
 func Erosion() utils.MorphOpsFunc {
-	return func(pixels [][]color.RGBA) [][]color.RGBA {
-		mask := buildSquareMask()
-		return applyMorph(pixels, mask, false)
+	return func(pixels []color.RGBA, mask [][]int) color.RGBA {
+		var R, G, B int = 255, 255, 255
+
+		for _, px := range pixels {
+			R = min(R, int(px.R))
+			G = min(G, int(px.G))
+			B = min(B, int(px.B))
+		}
+
+		return color.RGBA{
+			R: uint8(R),
+			G: uint8(G),
+			B: uint8(B),
+			A: 255,
+		}
 	}
 }
 
-func Opening() utils.MorphOpsFunc {
-	return func(pixels [][]color.RGBA) [][]color.RGBA {
-		mask := buildSquareMask()
-		eroded := applyMorph(pixels, mask, false)
-		return applyMorph(eroded, mask, true)
+func Opening() utils.ComboMorphOpsFunc {
+	return func(width, height int, pixels [][]color.RGBA) [][]color.RGBA {
+		eroded := make([][]color.RGBA, height)
+		for i := range eroded {
+			eroded[i] = make([]color.RGBA, width)
+		}
+
+		result := make([][]color.RGBA, height)
+		for i := range result {
+			result[i] = make([]color.RGBA, width)
+		}
+
+		eroded = utils.Morph(Erosion(), width, height, pixels, eroded)
+		result = utils.Morph(Dilation(), width, height, eroded, result)
+
+		return result
 	}
 }
 
-func Closing() utils.MorphOpsFunc {
-	return func(pixels [][]color.RGBA) [][]color.RGBA {
-		mask := buildSquareMask()
-		dilated := applyMorph(pixels, mask, true)
-		return applyMorph(dilated, mask, false)
+func Closing() utils.ComboMorphOpsFunc {
+	return func(width, height int, pixels [][]color.RGBA) [][]color.RGBA {
+		dilated := make([][]color.RGBA, height)
+		for i := range dilated {
+			dilated[i] = make([]color.RGBA, width)
+		}
+
+		result := make([][]color.RGBA, height)
+		for i := range result {
+			result[i] = make([]color.RGBA, width)
+		}
+
+		dilated = utils.Morph(Dilation(), width, height, pixels, dilated)
+		result = utils.Morph(Erosion(), width, height, dilated, result)
+
+		return result
 	}
 }
 
-func Outline() utils.MorphOpsFunc {
-	return func(pixels [][]color.RGBA) [][]color.RGBA {
-		mask := buildSquareMask()
-		eroded := applyMorph(pixels, mask, false)
+func Outline() utils.ComboMorphOpsFunc {
+	return func(width, height int, pixels [][]color.RGBA) [][]color.RGBA {
+		eroded := make([][]color.RGBA, height)
+		for i := range eroded {
+			eroded[i] = make([]color.RGBA, width)
+		}
+
+		eroded = utils.Morph(Erosion(), width, height, pixels, eroded)
 		for x, row := range pixels {
 			for y, px := range row {
 				pixels[x][y] = Subtract()(px, eroded[x][y])

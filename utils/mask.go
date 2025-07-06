@@ -2,6 +2,8 @@ package utils
 
 import (
 	"image/color"
+	"image_processing/global"
+	"math"
 	"sync"
 )
 
@@ -43,4 +45,35 @@ func mask(pixels [][]color.RGBA, width, height, x, y int, maskSize int) [][]colo
 
 	wg.Wait()
 	return neighbors
+}
+
+func buildSquareMask() [][]int {
+	mask := make([][]int, global.MaskSize)
+	for i := range global.MaskSize {
+		mask[i] = make([]int, global.MaskSize)
+		for j := range global.MaskSize {
+			mask[i][j] = 1
+		}
+	}
+	return mask
+}
+
+func buildDiamondMask() [][]int {
+	mask := make([][]int, global.MaskSize)
+	center := global.MaskSize / 2
+
+	for i := range global.MaskSize {
+		mask[i] = make([]int, global.MaskSize)
+
+		distance := int(math.Abs(float64(center - i)))
+		start := distance
+		end := global.MaskSize - distance
+
+		for j := start; j < end; j++ {
+			mask[i][j] = 1
+		}
+	}
+
+	return mask
+
 }
