@@ -9,7 +9,9 @@ import (
 func Process(service interface{}) func() {
 	return func() {
 		if *global.ImageOne == nil && *global.ImageTwo == nil {
-			slog.Error("No image set")
+			label := "No image set"
+			slog.Error(label)
+			warning(label)
 			return
 		}
 
@@ -37,7 +39,16 @@ func Process(service interface{}) func() {
 		case PixelTransformFunc:
 			newImage = single(s, width, height, pixelsOne, newImage)
 		case PixelsTransformFunc:
-			if pixelsTwo == nil {
+			if *global.ImageOne == nil || *global.ImageTwo == nil {
+				label := "This kind of function needs two images"
+				slog.Error(label)
+				warning(label)
+				return
+			}
+			if len(pixelsOne) != len(*pixelsTwo) {
+				label := "The two images need to have the same size"
+				slog.Error(label)
+				warning(label)
 				return
 			}
 			newImage = both(s, width, height, pixelsOne, *pixelsTwo, newImage)

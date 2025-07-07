@@ -1,6 +1,7 @@
 package view
 
 import (
+	"image_processing/global"
 	"image_processing/view/components"
 
 	"fyne.io/fyne/v2"
@@ -36,5 +37,8 @@ func MainView(a fyne.App) fyne.Window {
 	Window.SetContent(content)
 
 	Window.Resize(fyne.NewSize(content.MinSize().Width+100, content.MinSize().Height+100))
+
+	global.Window = Window
+
 	return Window
 }

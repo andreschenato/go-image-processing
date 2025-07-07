@@ -3,6 +3,7 @@ package global
 import (
 	"image"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 )
 
@@ -17,4 +18,6 @@ var (
 	MaskSize int = 3
 
 	UseDiamondMask bool = false
+
+	Window fyne.Window
 )
